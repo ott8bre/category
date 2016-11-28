@@ -1,15 +1,85 @@
 package com.ott8bre;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
 
 /**
  *
  * @author Francesco Frosini <ott8bre@gmail.com>
  * @param <A>
  */
-public final class List<A> {
+public abstract class List<A> {
+
+    //- STATICS -//
+    
+    public static <A> List<A> empty(){ 
+        return new Empty<>(); 
+    }
+    
+    public static <A> List<A> cons(final A head, final List<A> tail) {
+        return new Cons<>(head, tail);
+    }
+    
+    public static <A> List<A> single(final A a) {
+        return (List<A>) cons(a, empty());
+    }
+            
+    public static <A> List<A> from(A... as) {
+        List<A> l = empty();
+        for (int i = as.length-1; i >= 0; i--) {
+            l = cons(as[i], l);          
+        }
+        return l;
+    }
+    
+    //public static List<Integer> range(final int from, final int to) {
+    
+    //- IMPLEMENTATIONS -//
+    
+    public abstract A head();   
+    public abstract List<A> tail();
+    
+    
+    private static final class Empty<A> extends List<A> {
+        public static final Empty<Object> INSTANCE = new Empty<>();
+
+        @Override
+        public A head() {
+            throw new RuntimeException("head on empty list");
+        }
+
+        @Override
+        public List<A> tail() {
+            throw new RuntimeException("tail on empty list");
+        }
+    }
+
+    private static final class Cons<A> extends List<A> {
+        private final A head;
+        private final List<A> tail;
+
+        Cons(final A head, final List<A> tail) {
+            this.head = head;
+            this.tail = tail;
+        }
+
+        @Override
+        public A head() {
+            return head;
+        }
+
+        @Override
+        public List<A> tail() {
+            return tail;
+        }
+
+        /*private void tail(final List<A> tail) {
+          this.tail = tail;
+        }*/
+  }
+    
+
+    //--//
+    
+    /*    
     private final LinkedList<A> impl;
     
     private List() {
@@ -37,6 +107,8 @@ public final class List<A> {
     public static <A> List<A> from(final Collection<? extends A> c){
         return new List(c);
     }
+    
+    //- INSTANCES -//
     
     public List<A> prepend(final A t) {        
         LinkedList<A> ll = new LinkedList<>();    
@@ -123,7 +195,7 @@ public final class List<A> {
         return tail().reduce(head(), f2);
     }        
     
-    public A head(){
+    public final A head(){
         if(impl.isEmpty()) return null;
         
         return impl.getFirst();
@@ -156,9 +228,10 @@ public final class List<A> {
     public int hashCode() {
         return impl.hashCode();
     }
-
+    
     @Override
-    public String toString() {
-        return impl.toString();
+    public final String toString() {
+        return reduce();//impl.toString();
     }  
+    */
 }
