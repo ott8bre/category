@@ -6,6 +6,17 @@ package com.ott8bre;
  * @author Francesco Frosini <ott8bre@gmail.com>
  */
 public final class Lists {    
+    
+    public static <A> F2<A, List<A>, List<A>> cons(){
+        return new F2<A, List<A>, List<A>>() {
+
+            @Override
+            public List<A> apply(A a, List<A> b) {
+                return List.cons(a, b);
+            }
+        };  
+    }
+
     /*
 
     public static <T> List<T> prepend(final List<T> src, final T t) {

@@ -17,6 +17,14 @@ public final class Integers {
             return -a;
         }
     };
+
+    public static final F1<Integer, Boolean> even = new F1<Integer, Boolean>(){
+
+        @Override
+        public Boolean apply(Integer a) {
+            return a%2==0;
+        }
+    };    
     
     // BINARY //
     
@@ -51,6 +59,7 @@ public final class Integers {
             return a / b;
         }
     };
+    
     
 
 }

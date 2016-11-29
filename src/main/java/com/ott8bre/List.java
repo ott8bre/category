@@ -19,7 +19,7 @@ public abstract class List<A> {
     }
     
     public static <A> List<A> single(final A a) {
-        return (List<A>) cons(a, empty());
+        return cons(a, List.<A>empty());
     }
             
     public static <A> List<A> from(A... as) {
@@ -30,14 +30,57 @@ public abstract class List<A> {
         return l;
     }
     
-    //public static List<Integer> range(final int from, final int to) {
+    public static <A> List<A> repeat(final int n, final A a) {
+        return (n <= 0 ? List.<A>empty() : cons(a, repeat(n-1, a)));
+    }
     
-    //- IMPLEMENTATIONS -//
+    public static List<Integer> range(final int from, final int to) {
+        return (from > to ? List.<Integer>empty() : cons(from, range(from+1, to)));
+    }
     
+    //- Basics -//
+    public abstract boolean isEmpty();
+    public abstract int length(); 
+    public abstract List<A> reverse(); 
+    public abstract boolean contains(final A a);
+    public abstract <B> boolean equals(List<B> b);
+
+    //- Sub-lists -//
     public abstract A head();   
     public abstract List<A> tail();
+    //public abstract List<A> take();
+    //public abstract List<A> drop();
+    public abstract List<A> takeWhile(final F1<A,Boolean> f);
+    public abstract List<A> dropWhile(final F1<A,Boolean> f);
+    public abstract List<A> filter(final F1<A,Boolean> f);
+
+    //- Putting Lists Together -//
+    public final List<A> prepend(final A a){ return cons(a, this); }
+    //public abstract List<A> prepend(final List<A> a);
+    public final List<A> append(final A a){ return isEmpty() ? single(a) : cons(head(), tail().append(a)); }
+    //public abstract List<A> append(final List<A> a);
+    //public abstract List<A> concat();
+    //, intersperse
     
-    
+    //- Taking Lists Apart
+    //partition, unzip
+
+    //- Special Maps
+    public abstract <B> List<B> map(final F1<A,B> f);
+    //filterMap, concatMap, indexedMap
+
+    //- Folding
+    public abstract <B> B foldLeft(final F2<A,B,B> f, final B b);
+    public abstract <B> B foldRight(final F2<A,B,B> f, final B b);
+    public abstract A foldLeft1(final F2<A,A,A> f);
+    public abstract A foldRight1(final F2<A,A,A> f);
+
+    //- Special Folds
+    //sum, product, maximum, minimum, all, any, scanl
+
+    //- Sorting
+    //sort, sortBy, sortWith
+
     private static final class Empty<A> extends List<A> {
         public static final Empty<Object> INSTANCE = new Empty<>();
 
@@ -50,6 +93,77 @@ public abstract class List<A> {
         public List<A> tail() {
             throw new RuntimeException("tail on empty list");
         }
+
+        @Override
+        public <B> B foldLeft(F2<A, B, B> f, B b) {
+            return b;
+        }
+
+        @Override
+        public <B> B foldRight(F2<A, B, B> f, B b) {
+            return b;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Override
+        public int length() {
+            return 0;
+        }
+
+        @Override
+        public List<A> reverse() {
+            return this;
+        }
+
+        @Override
+        public boolean contains(final A a) {
+            return false;
+        }
+
+        @Override
+        public A foldLeft1(final F2<A, A, A> f) {
+            throw new RuntimeException("foldLeft1 on empty list");
+        }
+
+        @Override
+        public A foldRight1(final F2<A, A, A> f) {
+            throw new RuntimeException("foldRight1 on empty list");
+        }
+
+        @Override
+        public List<A> filter(F1<A, Boolean> f) {
+            return this;
+        }
+
+        @Override
+        public List<A> takeWhile(F1<A, Boolean> f) {
+            return this;
+        }
+
+        @Override
+        public List<A> dropWhile(F1<A, Boolean> f) {
+            return this;
+        }
+
+        @Override
+        public <B> List<B> map(F1<A, B> f) {
+            return List.<B>empty();
+        }
+
+        @Override
+        public <B> boolean equals(List<B> b) {
+            return b.isEmpty();
+        }
+    
+        @Override
+        public final String toString() {
+            return "[]";
+        }
+
     }
 
     private static final class Cons<A> extends List<A> {
@@ -74,145 +188,89 @@ public abstract class List<A> {
         /*private void tail(final List<A> tail) {
           this.tail = tail;
         }*/
+
+        @Override
+        public <B> B foldLeft(F2<A, B, B> f, B b) {
+            return tail.foldLeft(f, f.apply(head, b));
+        }
+
+        @Override
+        public <B> B foldRight(F2<A, B, B> f, B b) {
+            return reverse().foldLeft(f, b);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
+
+        @Override
+        public int length() {
+            return 1 + tail().length();
+        }
+
+        @Override
+        public List<A> reverse() { //foldl (::) [] list
+            return tail.reverse().append(head); 
+        }
+
+        @Override
+        public boolean contains(final A a) {
+            return head == a || tail.contains(a);
+        }
+
+        @Override
+        public A foldLeft1(final F2<A, A, A> f) {
+            return tail.foldLeft(f, head);
+        }
+
+        @Override
+        public A foldRight1(final F2<A, A, A> f) {
+            return tail.foldRight(f, head);
+        }
+
+        @Override
+        public List<A> filter(F1<A, Boolean> f) {
+            return f.apply(head) ? cons(head, tail.filter(f)) : tail.filter(f);
+        }
+
+        @Override
+        public List<A> takeWhile(F1<A, Boolean> f) {
+            return f.apply(head) ? cons(head, tail.takeWhile(f)) : List.<A>empty();
+        }
+
+        @Override
+        public List<A> dropWhile(F1<A, Boolean> f) {
+            return f.apply(head) ? tail.takeWhile(f) : this;
+        }
+
+        @Override
+        public <B> List<B> map(F1<A, B> f) {
+            return cons(f.apply(head), tail.map(f));
+        }
+
+        @Override
+        public <B> boolean equals(List<B> b) {
+            return !b.isEmpty() && ( this.head.equals(b.head()) ) && ( this.tail.equals(b.tail()) );
+        }
+
+        @Override
+        public final String toString() {
+            return "[" + head.toString() + tail.foldLeft(new F2<A,String,String>() {
+
+                @Override
+                public String apply(A a, String b) {
+                    return b + "," + a.toString();
+                }
+            }, "") + "]";
+        }  
+
   }
     
 
     //--//
     
-    /*    
-    private final LinkedList<A> impl;
     
-    private List() {
-        impl = new LinkedList<>();
-    }
-
-    private List(List<A> a) {
-        this(a.impl);
-    }
-
-    private List(Collection<A> c){
-        this();
-        this.impl.addAll(c);
-    }
-    
-    private List(A... as){
-        this();
-        Collections.addAll(this.impl, as);
-    }
-
-    public static <A> List<A> from(final A... ts) {
-        return new List(ts);
-    }
-    
-    public static <A> List<A> from(final Collection<? extends A> c){
-        return new List(c);
-    }
-    
-    //- INSTANCES -//
-    
-    public List<A> prepend(final A t) {        
-        LinkedList<A> ll = new LinkedList<>();    
-        ll.add(t);
-        ll.addAll(impl);
-        return new List(ll);
-    }    
-    
-    public List<A> append(final A a) {
-        LinkedList<A> ll = new LinkedList<>(impl);
-        ll.add(a);
-        return new List(ll);
-    }
-
-    public List<A> reverse(){
-        LinkedList<A> ll = new LinkedList<>();
-        for (int i = impl.size()-1; i >= 0; i--) {
-            ll.add(impl.get(i));
-        }
-        return new List(ll);
-    }
-    
-    public List<A> filter(final F1<A,Boolean> f1){
-        if(f1==null) return null;
-        
-        LinkedList<A> ll = new LinkedList<>();
-        for (A element : impl) {
-            if(f1.apply(element)) ll.add(element);
-        }
-        return new List(ll);
-    }
-    
-    public List<A> takeWhile(final F1<A,Boolean> f1){
-        if(f1==null) return null;
-        
-        LinkedList<A> ll = new LinkedList<>();
-        for (A element : impl) {
-            if(f1.apply(element)){
-                ll.add(element);
-            } else {
-                return new List(ll);
-            }
-        }
-        return new List(ll);
-    }
-    
-    public List<A> dropWhile(final F1<A,Boolean> f1){
-        if(f1==null) return null;
-        
-        LinkedList<A> ll = new LinkedList<>(impl);
-        for (A element : impl) {
-            if(f1.apply(element)){
-                ll.remove(0);
-            } else {
-                return new List(ll);
-            }
-        }
-        return new List(ll);
-    }
-    
-    public <B> List<B> map(final F1<? super A, ? extends B> f1){
-        if(f1==null) return null;
-        
-        LinkedList<B> ll = new LinkedList<>();
-        for (A element : impl) {
-            ll.add( f1.apply(element) );
-        }
-        return new List(ll);
-    }
-    
-    public <B> B reduce(final B b, final F2<A,B,B> f2){
-        if(b==null || f2==null) return null;
-        
-        B reduced = b;
-        for (A element : impl) {
-            reduced = f2.apply(element, reduced);
-        }
-        return reduced;
-    }    
-
-    public A reduce1(final F2<A,A,A> f2){
-        if(f2==null || impl.isEmpty()) return null;
-        
-        return tail().reduce(head(), f2);
-    }        
-    
-    public final A head(){
-        if(impl.isEmpty()) return null;
-        
-        return impl.getFirst();
-    }
-    
-    public List<A> tail(){
-        if(impl.isEmpty()) return null;
-        
-        LinkedList<A> ll = new LinkedList<>(impl);
-        ll.removeFirst();
-        return new List(ll);
-    }
-
-    public int length() {
-        return impl.size();
-    }
-
     @Override
     public boolean equals(Object other) {
         if (other == null) return false;
@@ -221,17 +279,12 @@ public abstract class List<A> {
 
         List that = (List)other;        
 
-        return this.impl.equals(that.impl);
+        return this.equals(that);
     }
 
     @Override
     public int hashCode() {
-        return impl.hashCode();
+        return isEmpty() ? -1 : 41 * head().hashCode() + 23 * tail().hashCode();
     }
-    
-    @Override
-    public final String toString() {
-        return reduce();//impl.toString();
-    }  
-    */
+        
 }
