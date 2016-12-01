@@ -106,8 +106,12 @@ public abstract class List<A> implements Iterable<A> {
     //- Sorting
     //sort, sortBy, sortWith
 
+    //- Set
+    //union, intersect
+    
     public final A[] toArray(){
-        return null;
+        A[] arr = (A[]) new Object[length()];
+        return toCollection().toArray(arr);
     }
     
   public final Collection<A> toCollection() {
@@ -323,11 +327,11 @@ public abstract class List<A> implements Iterable<A> {
 
         @Override
         public final String toString() {
-            return "[" + head.toString() + tail.foldLeft(new F2<String,A,String>() {
+            return "[" + head.toString() + tail.foldRight(new F2<A,String,String>() {
 
                 @Override
-                public String apply(String a, A b) {
-                    return b.toString() + "," + a;
+                public String apply(A a, String b) {
+                    return b + "," + a.toString();
                 }
             }, "") + "]";
         }  
