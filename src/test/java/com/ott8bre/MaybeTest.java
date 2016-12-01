@@ -1,5 +1,6 @@
 package com.ott8bre;
 
+import com.ott8bre.data.Maybe;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

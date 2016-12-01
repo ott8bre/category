@@ -10,6 +10,15 @@ package com.ott8bre;
 public abstract class F2<A, B, C> {
     public abstract C apply(final A a, final B b);
     
+    public F2<B, A, C> flip(){
+        return new F2<B, A, C>() {
+            @Override
+            public C apply(B a, A b) {
+                return F2.this.apply(b, a);
+            }
+        };
+    }
+    
     public <D> F2<A,B,D> then(final F1<C,D> f){
         return new F2<A,B,D>() {
 

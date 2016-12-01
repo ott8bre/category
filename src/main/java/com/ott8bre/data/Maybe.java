@@ -1,4 +1,4 @@
-package com.ott8bre;
+package com.ott8bre.data;
 
 /**
  *

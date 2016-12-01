@@ -1,8 +1,14 @@
 package com.ott8bre;
 
+import com.ott8bre.data.Lists;
+import com.ott8bre.data.List;
+import java.util.ArrayList;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import static com.ott8bre.Integers.even;
+import static com.ott8bre.Integers.add;
+import static com.ott8bre.data.Lists.cons;
 /**
  *
  * @author Francesco Frosini <ott8bre@gmail.com>
@@ -11,10 +17,8 @@ public class ListTest {
     private final List<Integer> empty;
     private final List<Integer> from123;
 
-    private final F2<Integer, List<Integer>, List<Integer>> cons = Lists.cons();
+    private final F2<Integer, List<Integer>, List<Integer>> cons = cons();
     
-    private final F1<Integer, Boolean> isEven = Integers.even;
-    private final F2<Integer,Integer,Integer> add = Integers.add;
     private final F1<Integer, Integer> add1 = add.apply2(1);
     
     public ListTest() {
@@ -22,6 +26,23 @@ public class ListTest {
         from123 = List.from(1,2,3);
     }
         
+    @Test
+    public void testArray() {
+        System.out.println("testArray");
+        Integer[] ar = new Integer[]{-1,0,+1};
+        assertArrayEquals(ar, List.fromArray(ar).toArray());
+    }
+
+    @Test
+    public void testCollection() {
+        System.out.println("testCollection");
+        ArrayList<Integer> al = new ArrayList<>();
+        al.add(Integer.MIN_VALUE);
+        al.add(Integer.MAX_VALUE);
+        assertEquals(al, List.fromCollection(al).toCollection());
+    }
+
+    
     @Test
     public void testRepeat() {
         System.out.println("repeat");
@@ -64,22 +85,22 @@ public class ListTest {
     @Test
     public void testFilter() {
         System.out.println("filter");
-        assertEquals(empty, empty.filter(isEven));
-        assertEquals(List.from(2), from123.filter(isEven));
+        assertEquals(empty, empty.filter(even));
+        assertEquals(List.from(2), from123.filter(even));
     }
 
     @Test
     public void testTakeWhile() {
         System.out.println("takeWhile");
-        assertEquals(empty, empty.takeWhile(isEven));
-        assertEquals(List.from(), from123.takeWhile(isEven));
+        assertEquals(empty, empty.takeWhile(even));
+        assertEquals(List.from(), from123.takeWhile(even));
     }
 
     @Test
     public void testDropWhile() {
         System.out.println("dropWhile");
-        assertEquals(empty, empty.dropWhile(isEven));
-        assertEquals(from123, from123.dropWhile(isEven));
+        assertEquals(empty, empty.dropWhile(even));
+        assertEquals(from123, from123.dropWhile(even));
     }
 
     @Test
@@ -92,8 +113,8 @@ public class ListTest {
     @Test
     public void testFoldLeft() {
         System.out.println("foldLeft");
-        assertEquals(empty, empty.foldLeft(cons, empty));
-        assertEquals(List.from(3,2,1), from123.foldLeft(cons, empty));
+        assertEquals(empty, empty.foldLeft( cons.flip(), empty ));
+        assertEquals(List.from(3,2,1), from123.foldLeft( cons.flip(), empty) );
     }
 
     @Test

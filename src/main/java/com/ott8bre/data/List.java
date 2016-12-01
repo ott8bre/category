@@ -1,4 +1,11 @@
-package com.ott8bre;
+package com.ott8bre.data;
+
+import com.ott8bre.F1;
+import com.ott8bre.F2;
+import java.util.AbstractCollection;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 
 /**
@@ -6,7 +13,7 @@ package com.ott8bre;
  * @author Francesco Frosini <ott8bre@gmail.com>
  * @param <A>
  */
-public abstract class List<A> {
+public abstract class List<A> implements Iterable<A> {
 
     //- STATICS -//
     
@@ -21,13 +28,25 @@ public abstract class List<A> {
     public static <A> List<A> single(final A a) {
         return cons(a, List.<A>empty());
     }
-            
-    public static <A> List<A> from(A... as) {
+    
+    public static <A> List<A> fromArray(A[] as) {
         List<A> l = empty();
-        for (int i = as.length-1; i >= 0; i--) {
-            l = cons(as[i], l);          
+        for (A a : as) {
+            l = cons(a, l);                      
         }
         return l;
+    }
+
+    public static <A> List<A> fromCollection(Collection<A> as) {
+        List<A> l = empty();
+        for (A a : as) {
+            l = cons(a, l);          
+        }
+        return l;    
+    }
+    
+    public static <A> List<A> from(A... as) {
+        return fromArray(as);
     }
     
     public static <A> List<A> repeat(final int n, final A a) {
@@ -37,6 +56,12 @@ public abstract class List<A> {
     public static List<Integer> range(final int from, final int to) {
         return (from > to ? List.<Integer>empty() : cons(from, range(from+1, to)));
     }
+
+    @Override
+    public final Iterator<A> iterator() {
+        return toCollection().iterator();
+    }
+
     
     //- Basics -//
     public abstract boolean isEmpty();
@@ -70,7 +95,7 @@ public abstract class List<A> {
     //filterMap, concatMap, indexedMap
 
     //- Folding
-    public abstract <B> B foldLeft(final F2<A,B,B> f, final B b);
+    public abstract <B> B foldLeft(final F2<B,A,B> f, final B b);
     public abstract <B> B foldRight(final F2<A,B,B> f, final B b);
     public abstract A foldLeft1(final F2<A,A,A> f);
     public abstract A foldRight1(final F2<A,A,A> f);
@@ -81,6 +106,48 @@ public abstract class List<A> {
     //- Sorting
     //sort, sortBy, sortWith
 
+    public final A[] toArray(){
+        return null;
+    }
+    
+  public final Collection<A> toCollection() {
+    return new AbstractCollection<A>() {
+      @Override
+      public Iterator<A> iterator() {
+        return new Iterator<A>() {
+          private List<A> xs = List.this;
+
+          @Override
+          public boolean hasNext() {
+            return !xs.isEmpty();
+          }
+
+          @Override
+          public A next() {
+            if (xs.isEmpty())
+              throw new NoSuchElementException();
+            else {
+              final A a = xs.head();
+              xs = xs.tail();
+              return a;
+            }
+          }
+
+          @Override
+          public void remove() {
+            throw new UnsupportedOperationException();
+          }
+        };
+      }
+
+      @Override
+      public int size() {
+        return length();
+      }
+    };
+  }
+    
+    
     private static final class Empty<A> extends List<A> {
         public static final Empty<Object> INSTANCE = new Empty<>();
 
@@ -95,7 +162,7 @@ public abstract class List<A> {
         }
 
         @Override
-        public <B> B foldLeft(F2<A, B, B> f, B b) {
+        public <B> B foldLeft(F2<B, A, B> f, B b) {
             return b;
         }
 
@@ -190,13 +257,13 @@ public abstract class List<A> {
         }*/
 
         @Override
-        public <B> B foldLeft(F2<A, B, B> f, B b) {
-            return tail.foldLeft(f, f.apply(head, b));
+        public <B> B foldLeft(F2<B, A, B> f, B b) {
+            return tail.foldLeft(f, f.apply(b, head));
         }
 
         @Override
         public <B> B foldRight(F2<A, B, B> f, B b) {
-            return reverse().foldLeft(f, b);
+            return f.apply(head, tail.foldRight(f,b));
         }
 
         @Override
@@ -256,11 +323,11 @@ public abstract class List<A> {
 
         @Override
         public final String toString() {
-            return "[" + head.toString() + tail.foldLeft(new F2<A,String,String>() {
+            return "[" + head.toString() + tail.foldLeft(new F2<String,A,String>() {
 
                 @Override
-                public String apply(A a, String b) {
-                    return b + "," + a.toString();
+                public String apply(String a, A b) {
+                    return b.toString() + "," + a;
                 }
             }, "") + "]";
         }  
