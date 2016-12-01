@@ -29,20 +29,20 @@ public abstract class List<A> implements Iterable<A> {
         return cons(a, List.<A>empty());
     }
     
-    public static <A> List<A> fromArray(A[] as) {
+    public static <A> List<A> fromArray(final A[] as) {
         List<A> l = empty();
-        for (A a : as) {
-            l = cons(a, l);                      
+        for (int i = as.length-1; i >= 0; i--) {
+            l = cons(as[i], l);                       
         }
         return l;
     }
 
-    public static <A> List<A> fromCollection(Collection<A> as) {
+    public static <A> List<A> fromCollection(final Collection<A> as) {
         List<A> l = empty();
         for (A a : as) {
             l = cons(a, l);          
         }
-        return l;    
+        return l.reverse();    
     }
     
     public static <A> List<A> from(A... as) {
