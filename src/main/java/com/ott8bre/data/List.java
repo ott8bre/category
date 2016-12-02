@@ -111,7 +111,11 @@ public abstract class List<A> implements Iterable<A> {
     
     public final A[] toArray(){
         A[] arr = (A[]) new Object[length()];
-        return toCollection().toArray(arr);
+        int i=0;
+        for (A a : this) {
+            arr[i++] = a;
+        }
+        return arr;
     }
     
   public final Collection<A> toCollection() {
@@ -262,12 +266,12 @@ public abstract class List<A> implements Iterable<A> {
 
         @Override
         public <B> B foldLeft(F2<B, A, B> f, B b) {
-            return tail.foldLeft(f, f.apply(b, head));
+            return tail.foldLeft(f, f.apply(b, head)); 
         }
 
         @Override
         public <B> B foldRight(F2<A, B, B> f, B b) {
-            return f.apply(head, tail.foldRight(f,b));
+            return f.apply(head, tail.foldRight(f,b)); // foldr f e (x:xs) = f x (foldr f e xs)
         }
 
         @Override
@@ -327,11 +331,12 @@ public abstract class List<A> implements Iterable<A> {
 
         @Override
         public final String toString() {
-            return "[" + head.toString() + tail.foldRight(new F2<A,String,String>() {
+            return "[" + head.toString() + tail.foldLeft(new F2<String,A,String>() {
 
                 @Override
-                public String apply(A a, String b) {
-                    return b + "," + a.toString();
+                public String apply(String a, A b) {
+                    return a + "," + b.toString();
+                    //return b.isEmpty() ? a.toString() : a.toString() + "," + b;
                 }
             }, "") + "]";
         }  

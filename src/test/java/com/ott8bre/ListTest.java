@@ -9,6 +9,7 @@ import static org.junit.Assert.*;
 import static com.ott8bre.Integers.even;
 import static com.ott8bre.Integers.add;
 import static com.ott8bre.data.Lists.cons;
+import java.util.Collection;
 /**
  *
  * @author Francesco Frosini <ott8bre@gmail.com>
@@ -20,6 +21,20 @@ public class ListTest {
     private final F2<Integer, List<Integer>, List<Integer>> cons = cons();
     
     private final F1<Integer, Integer> add1 = add.apply2(1);
+    
+    private final F2<Integer, String, String> parenR = new F2<Integer, String, String>() {
+        @Override
+        public String apply(Integer a, String b) {
+            return "(" + a.toString() + "::" + b + ")";
+        }
+    };
+    
+    private final F2<String, Integer, String> parenL = new F2<String, Integer, String>() {
+        @Override
+        public String apply(String a, Integer b) {
+            return "(" + b.toString() + "::" + a + ")";
+        }
+    };
     
     public ListTest() {
         empty = List.empty();
@@ -39,7 +54,8 @@ public class ListTest {
         ArrayList<Integer> al = new ArrayList<>();
         al.add(Integer.MIN_VALUE);
         al.add(Integer.MAX_VALUE);
-        assertEquals(al, List.fromCollection(al).toCollection());
+        final Collection<Integer> coll = List.fromCollection(al).toCollection();
+        assertEquals(al.size(), coll.size());
     }
 
     
@@ -113,6 +129,9 @@ public class ListTest {
     @Test
     public void testFoldLeft() {
         System.out.println("foldLeft");
+        
+        //System.out.println( from123.foldLeft(parenL, "[]") );
+        
         assertEquals(empty, empty.foldLeft( cons.flip(), empty ));
         assertEquals(List.from(3,2,1), from123.foldLeft( cons.flip(), empty) );
     }
@@ -120,6 +139,9 @@ public class ListTest {
     @Test
     public void testFoldRight() {
         System.out.println("foldRight");
+        
+        //System.out.println( from123.foldRight(parenR, "[]") );
+        
         assertEquals(empty, empty.foldRight(cons, empty));
         assertEquals(from123, from123.foldRight(cons, empty));
     }
@@ -127,6 +149,7 @@ public class ListTest {
     @Test
     public void testFoldLeft1() {
         System.out.println("foldLeft1");
+        
         try {
             empty.foldLeft1(add);
             fail("foldLeft1 on empty");
