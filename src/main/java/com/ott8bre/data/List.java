@@ -73,8 +73,8 @@ public abstract class List<A> implements Iterable<A> {
     //- Sub-lists -//
     public abstract A head();   
     public abstract List<A> tail();
-    //public abstract List<A> take();
-    //public abstract List<A> drop();
+    public abstract List<A> take(final int a);
+    public abstract List<A> drop(final int a);
     public abstract List<A> takeWhile(final F1<A,Boolean> f);
     public abstract List<A> dropWhile(final F1<A,Boolean> f);
     public abstract List<A> filter(final F1<A,Boolean> f);
@@ -215,10 +215,20 @@ public abstract class List<A> implements Iterable<A> {
         }
 
         @Override
+        public List<A> take(int a) {
+            return this;
+        }
+        
+        @Override
         public List<A> takeWhile(F1<A, Boolean> f) {
             return this;
         }
 
+        @Override
+        public List<A> drop(int a) {
+            return this;
+        }
+        
         @Override
         public List<A> dropWhile(F1<A, Boolean> f) {
             return this;
@@ -310,8 +320,18 @@ public abstract class List<A> implements Iterable<A> {
         }
 
         @Override
+        public List<A> take(int a) {
+            return a > 0 ? cons(head, tail.take(a-1)) : List.<A>empty();
+        }
+        
+        @Override
         public List<A> takeWhile(F1<A, Boolean> f) {
             return f.apply(head) ? cons(head, tail.takeWhile(f)) : List.<A>empty();
+        }
+
+        @Override
+        public List<A> drop(int a) {
+            return a > 0 ? tail.drop(a-1) : this;
         }
 
         @Override
